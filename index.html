@@ -1,82 +1,97 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DevOps Task</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>City Data</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-6">
-                <button id="allDataBtn" class="btn btn-primary mt-5">Get All Data</button>
-            </div>
-            <div class="col-md-6">
-                <input type="text" id="cityIdInput" class="form-control mt-5" placeholder="Enter ID">
-                <button id="dataByIdBtn" class="btn btn-primary mt-2">Get Data by ID</button>
-            </div>
-        </div>
+    <h1>City Data</h1>
+    <button onclick="fetchAllCities()">Get All Cities</button>
+    <input type="number" id="cityId" placeholder="Enter city ID">
+    <button onclick="fetchCityById()">Get City by ID</button>
+    <div id="response">
+        <table id="cityTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>City</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data will be inserted here -->
+            </tbody>
+        </table>
     </div>
-
-    <!-- Modal for displaying results -->
-    <div class="modal fade" id="resultModal" tabindex="-1" role="dialog" aria-labelledby="resultModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="resultModalLabel">Result</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body" id="modalBody">
-                    <!-- Data will be injected here -->
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-        const SERVER_IP = 'http://your-server-ip:5000';
+const API_BASE_URL = 'http://16.171.44.0:5000'; // Замените на IP вашего сервера с Flask
 
-        document.getElementById('allDataBtn').addEventListener('click', () => {
-            fetch(`${SERVER_IP}/data`)
-                .then(response => response.json())
-                .then(data => {
-                    let tableContent = '<table class="table"><thead><tr><th>ID</th><th>City</th></tr></thead><tbody>';
-                    data.data.forEach(item => {
-                        tableContent += `<tr><td>${item.id}</td><td>${item.city}</td></tr>`;
-                    });
-                    tableContent += '</tbody></table>';
-                    document.getElementById('modalBody').innerHTML = tableContent;
-                    $('#resultModal').modal('show');
-                })
-                .catch(error => console.error('Error:', error));
-        });
+async function fetchAllCities() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/cities`);
+        console.log('Response Status:', response.status);
+        console.log('Response Headers:', response.headers);
+        const text = await response.text(); // Получите ответ как текст
+        console.log('Response Text:', text);
 
-        document.getElementById('dataByIdBtn').addEventListener('click', () => {
-            const cityId = document.getElementById('cityIdInput').value;
-            if (!cityId) {
-                alert('Please enter an ID');
-                return;
-            }
-            fetch(`${SERVER_IP}/databyid/${cityId}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        document.getElementById('modalBody').innerHTML = `<p>${data.error}</p>`;
-                    } else {
-                        document.getElementById('modalBody').innerHTML = `<p>ID: ${data.id}</p><p>City: ${data.city}</p>`;
-                    }
-                    $('#resultModal').modal('show');
-                })
-                .catch(error => console.error('Error:', error));
-        });
+        const cities = JSON.parse(text); // Попробуйте парсить текст как JSON
+        displayCities(cities);
+    } catch (error) {
+        console.error('Error fetching cities:', error);
+        alert('Failed to fetch cities.');
+    }
+}
+
+async function fetchCityById() {
+    const id = document.getElementById('cityId').value;
+    try {
+        const response = await fetch(`${API_BASE_URL}/city/${id}`);
+        console.log('Response Status:', response.status);
+        console.log('Response Headers:', response.headers);
+        const text = await response.text(); // Получите ответ как текст
+        console.log('Response Text:', text);
+
+        const city = JSON.parse(text); // Попробуйте парсить текст как JSON
+        displayCity(city);
+    } catch (error) {
+        console.error('Error fetching city:', error);
+        alert('Failed to fetch city.');
+    }
+}
+
+function displayCities(cities) {
+    const tableBody = document.getElementById('cityTable').getElementsByTagName('tbody')[0];
+    tableBody.innerHTML = '';
+    cities.forEach(city => {
+        const row = tableBody.insertRow();
+        row.insertCell(0).textContent = city.id;
+        row.insertCell(1).textContent = city.city;
+    });
+}
+
+function displayCity(city) {
+    const tableBody = document.getElementById('cityTable').getElementsByTagName('tbody')[0];
+    tableBody.innerHTML = '';
+    const row = tableBody.insertRow();
+    row.insertCell(0).textContent = city.id;
+    row.insertCell(1).textContent = city.city;
+}
+
     </script>
 </body>
 </html>
+
