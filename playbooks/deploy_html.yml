@@ -1,0 +1,13 @@
+---
+- name: Deploy HTML page to NGINX
+  hosts: web_server
+  become: yes
+  tasks:
+    - name: Copy HTML file to NGINX web directory
+      copy:
+        src: /home/lol/Key/index.html
+        dest: /usr/share/nginx/html/index.html
+        owner: nginx
+        group: nginx
+        mode: '0644'
+
